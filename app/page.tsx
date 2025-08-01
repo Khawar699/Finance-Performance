@@ -44,10 +44,10 @@ export default function HomePage() {
   const [employees, setEmployees] = useState([
     {
       id: 1,
-      name: "Sarah Johnson",
+      name: "Max Hamilton",
       position: "Senior Accountant",
       department: "Accounting",
-      email: "sarah.johnson@company.com",
+      email: "max.hamilton@company.com",
       avatar: "/placeholder.svg?height=40&width=40",
       performance: 92,
       attendance: 96,
@@ -58,10 +58,10 @@ export default function HomePage() {
     },
     {
       id: 2,
-      name: "Michael Chen",
+      name: "Bilawal Ali",
       position: "Financial Analyst",
       department: "Finance",
-      email: "michael.chen@company.com",
+      email: "bilawal.ali@company.com",
       avatar: "/placeholder.svg?height=40&width=40",
       performance: 88,
       attendance: 94,
@@ -72,10 +72,10 @@ export default function HomePage() {
     },
     {
       id: 3,
-      name: "Emily Rodriguez",
+      name: "Arthur Andersen",
       position: "Junior Accountant",
       department: "Accounting",
-      email: "emily.rodriguez@company.com",
+      email: "arthur.andersen@company.com",
       avatar: "/placeholder.svg?height=40&width=40",
       performance: 85,
       attendance: 98,
@@ -86,10 +86,10 @@ export default function HomePage() {
     },
     {
       id: 4,
-      name: "David Kim",
+      name: "Peter Parker",
       position: "Budget Analyst",
       department: "Finance",
-      email: "david.kim@company.com",
+      email: "peter.parker@company.com",
       avatar: "/placeholder.svg?height=40&width=40",
       performance: 90,
       attendance: 92,
@@ -100,10 +100,10 @@ export default function HomePage() {
     },
     {
       id: 5,
-      name: "Lisa Thompson",
+      name: "Robert Shiller",
       position: "Accounts Payable Specialist",
       department: "Accounting",
-      email: "lisa.thompson@company.com",
+      email: "robert.shiller@company.com",
       avatar: "/placeholder.svg?height=40&width=40",
       performance: 87,
       attendance: 95,
@@ -114,10 +114,10 @@ export default function HomePage() {
     },
     {
       id: 6,
-      name: "James Wilson",
+      name: "Barry Johnson",
       position: "Tax Specialist",
       department: "Accounting",
-      email: "james.wilson@company.com",
+      email: "barry.johnson@company.com",
       avatar: "/placeholder.svg?height=40&width=40",
       performance: 91,
       attendance: 97,
@@ -128,58 +128,16 @@ export default function HomePage() {
     },
     {
       id: 7,
-      name: "Maria Garcia",
+      name: "Moaaz Ahmed",
       position: "Financial Controller",
       department: "Finance",
-      email: "maria.garcia@company.com",
+      email: "moaaz.ahmed@company.com",
       avatar: "/placeholder.svg?height=40&width=40",
       performance: 95,
       attendance: 99,
       tasksCompleted: 31,
       totalTasks: 32,
       lateComings: 0,
-      status: "active",
-    },
-    {
-      id: 8,
-      name: "Robert Brown",
-      position: "Accounts Receivable Specialist",
-      department: "Accounting",
-      email: "robert.brown@company.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-      performance: 83,
-      attendance: 91,
-      tasksCompleted: 21,
-      totalTasks: 26,
-      lateComings: 5,
-      status: "active",
-    },
-    {
-      id: 9,
-      name: "Jennifer Lee",
-      position: "Payroll Specialist",
-      department: "Finance",
-      email: "jennifer.lee@company.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-      performance: 89,
-      attendance: 93,
-      tasksCompleted: 23,
-      totalTasks: 26,
-      lateComings: 3,
-      status: "active",
-    },
-    {
-      id: 10,
-      name: "Thomas Anderson",
-      position: "Cost Accountant",
-      department: "Accounting",
-      email: "thomas.anderson@company.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-      performance: 86,
-      attendance: 94,
-      tasksCompleted: 24,
-      totalTasks: 28,
-      lateComings: 2,
       status: "active",
     },
   ])
@@ -203,6 +161,11 @@ export default function HomePage() {
 
   const handleUpdateAttendance = (entry: AttendanceEntry) => {
     setAttendanceRecords((prev) => prev.map((record) => (record.id === entry.id ? entry : record)))
+  }
+
+  // Add employee handler
+  const handleAddEmployee = (newEmployee: Employee) => {
+    setEmployees((prevEmployees) => [...prevEmployees, newEmployee])
   }
 
   if (selectedEmployee) {
@@ -234,6 +197,7 @@ export default function HomePage() {
             employees={employees}
             onEmployeeSelect={setSelectedEmployee}
             onEmployeeEdit={handleEditEmployee}
+            onEmployeeAdd={handleAddEmployee}
             attendanceRecords={attendanceRecords}
             onAddAttendance={handleAddAttendance}
             onUpdateAttendance={handleUpdateAttendance}

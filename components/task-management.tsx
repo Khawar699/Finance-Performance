@@ -16,8 +16,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
-import { Plus, Calendar, User, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { Plus, Calendar, User, CheckCircle, Clock, AlertCircle, MoreVertical, Check, AlertTriangle } from "lucide-react"
 
 interface Employee {
   id: number
@@ -34,16 +35,18 @@ interface Task {
   assignedTo: number
   assignedBy: string
   priority: "low" | "medium" | "high"
-  status: "pending" | "in-progress" | "completed" | "overdue"
+  status: "pending" | "in-progress" | "completed-ontime" | "completed-late" | "overdue"
   dueDate: string
   createdDate: string
+  completedDate?: string
+  completionType?: "ontime" | "late"
 }
 
 interface TaskManagementProps {
   employees: Employee[]
 }
 
-// Mock tasks data
+// Mock tasks data with updated employee names
 const mockTasks: Task[] = [
   {
     id: 1,
@@ -63,9 +66,11 @@ const mockTasks: Task[] = [
     assignedTo: 2,
     assignedBy: "Finance Manager",
     priority: "medium",
-    status: "completed",
+    status: "completed-ontime",
     dueDate: "2024-02-10",
     createdDate: "2024-01-28",
+    completedDate: "2024-02-09",
+    completionType: "ontime",
   },
   {
     id: 3,
@@ -77,6 +82,19 @@ const mockTasks: Task[] = [
     status: "pending",
     dueDate: "2024-02-12",
     createdDate: "2024-02-05",
+  },
+  {
+    id: 4,
+    title: "Tax Documentation Review",
+    description: "Review and organize tax documentation for audit",
+    assignedTo: 6,
+    assignedBy: "Finance Manager",
+    priority: "medium",
+    status: "completed-late",
+    dueDate: "2024-02-08",
+    createdDate: "2024-01-25",
+    completedDate: "2024-02-10",
+    completionType: "late",
   },
 ]
 
@@ -93,8 +111,10 @@ export function TaskManagement({ employees }: TaskManagementProps) {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "completed":
+      case "completed-ontime":
         return <CheckCircle className="h-4 w-4 text-green-600" />
+      case "completed-late":
+        return <CheckCircle className="h-4 w-4 text-orange-600" />
       case "in-progress":
         return <Clock className="h-4 w-4 text-blue-600" />
       case "overdue":
@@ -106,10 +126,16 @@ export function TaskManagement({ employees }: TaskManagementProps) {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed":
+      case "completed-ontime":
         return (
           <Badge variant="default" className="bg-green-100 text-green-800">
-            Completed
+            Completed On Time
+          </Badge>
+        )
+      case "completed-late":
+        return (
+          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+            Completed Late
           </Badge>
         )
       case "in-progress":
@@ -162,9 +188,34 @@ export function TaskManagement({ employees }: TaskManagementProps) {
     }
   }
 
+  const handleCompleteTask = (taskId: number, completionType: "ontime" | "late") => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              status: completionType === "ontime" ? "completed-ontime" : "completed-late",
+              completedDate: new Date().toISOString().split("T")[0],
+              completionType,
+            }
+          : task,
+      ),
+    )
+  }
+
+  const handleUpdateTaskStatus = (taskId: number, newStatus: Task["status"]) => {
+    setTasks((prevTasks) => prevTasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)))
+  }
+
   const getEmployeeName = (employeeId: number) => {
     const employee = employees.find((emp) => emp.id === employeeId)
     return employee ? employee.name : "Unknown"
+  }
+
+  const isTaskOverdue = (task: Task) => {
+    const today = new Date()
+    const dueDate = new Date(task.dueDate)
+    return today > dueDate && !task.status.includes("completed")
   }
 
   return (
@@ -265,37 +316,114 @@ export function TaskManagement({ employees }: TaskManagementProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {tasks.map((task) => (
-              <div key={task.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h3 className="font-medium text-lg">{task.title}</h3>
-                    <p className="text-gray-600 text-sm">{task.description}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getPriorityBadge(task.priority)}
-                    {getStatusBadge(task.status)}
-                  </div>
-                </div>
+            {tasks.map((task) => {
+              const isOverdue = isTaskOverdue(task)
+              const canComplete = task.status === "pending" || task.status === "in-progress"
 
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      <span>Assigned to: {getEmployeeName(task.assignedTo)}</span>
+              return (
+                <div key={task.id} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1 flex-1">
+                      <h3 className="font-medium text-lg">{task.title}</h3>
+                      <p className="text-gray-600 text-sm">{task.description}</p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-2 ml-4">
+                      {getPriorityBadge(task.priority)}
+                      {getStatusBadge(isOverdue && !task.status.includes("completed") ? "overdue" : task.status)}
+
+                      {/* Task Actions Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {canComplete && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleCompleteTask(task.id, "ontime")}>
+                                <Check className="mr-2 h-4 w-4 text-green-600" />
+                                Mark Complete (On Time)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleCompleteTask(task.id, "late")}>
+                                <AlertTriangle className="mr-2 h-4 w-4 text-orange-600" />
+                                Mark Complete (Late)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateTaskStatus(task.id, "in-progress")}>
+                                <Clock className="mr-2 h-4 w-4 text-blue-600" />
+                                Mark In Progress
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {task.status.includes("completed") && (
+                            <DropdownMenuItem onClick={() => handleUpdateTaskStatus(task.id, "pending")}>
+                              <Clock className="mr-2 h-4 w-4 text-gray-600" />
+                              Reopen Task
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {getStatusIcon(task.status)}
-                    <span>Created: {new Date(task.createdDate).toLocaleDateString()}</span>
+
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        <span>Assigned to: {getEmployeeName(task.assignedTo)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                      </div>
+                      {task.completedDate && (
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className="h-4 w-4" />
+                          <span>Completed: {new Date(task.completedDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {getStatusIcon(isOverdue && !task.status.includes("completed") ? "overdue" : task.status)}
+                      <span>Created: {new Date(task.createdDate).toLocaleDateString()}</span>
+                    </div>
                   </div>
+
+                  {/* Quick Action Buttons for Pending/In-Progress Tasks */}
+                  {canComplete && (
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCompleteTask(task.id, "ontime")}
+                        className="text-green-600 border-green-200 hover:bg-green-50"
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Complete On Time
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCompleteTask(task.id, "late")}
+                        className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                      >
+                        <AlertTriangle className="h-4 w-4 mr-1" />
+                        Complete Late
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateTaskStatus(task.id, "in-progress")}
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      >
+                        <Clock className="h-4 w-4 mr-1" />
+                        In Progress
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </CardContent>
       </Card>
@@ -310,9 +438,11 @@ export function TaskManagement({ employees }: TaskManagementProps) {
           <div className="grid gap-4">
             {employees.map((employee) => {
               const employeeTasks = tasks.filter((task) => task.assignedTo === employee.id)
-              const completedTasks = employeeTasks.filter((task) => task.status === "completed").length
+              const completedOnTime = employeeTasks.filter((task) => task.status === "completed-ontime").length
+              const completedLate = employeeTasks.filter((task) => task.status === "completed-late").length
               const pendingTasks = employeeTasks.filter((task) => task.status === "pending").length
               const inProgressTasks = employeeTasks.filter((task) => task.status === "in-progress").length
+              const overdueTasks = employeeTasks.filter((task) => isTaskOverdue(task)).length
 
               return (
                 <div key={employee.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -329,16 +459,24 @@ export function TaskManagement({ employees }: TaskManagementProps) {
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-green-600">{completedTasks}</div>
-                      <div className="text-xs text-gray-500">Completed</div>
+                      <div className="text-lg font-semibold text-green-600">{completedOnTime}</div>
+                      <div className="text-xs text-gray-500">On Time</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-orange-600">{completedLate}</div>
+                      <div className="text-xs text-gray-500">Late</div>
                     </div>
                     <div className="text-center">
                       <div className="text-lg font-semibold text-blue-600">{inProgressTasks}</div>
                       <div className="text-xs text-gray-500">In Progress</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-orange-600">{pendingTasks}</div>
+                      <div className="text-lg font-semibold text-gray-600">{pendingTasks}</div>
                       <div className="text-xs text-gray-500">Pending</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-red-600">{overdueTasks}</div>
+                      <div className="text-xs text-gray-500">Overdue</div>
                     </div>
                     <div className="text-center">
                       <div className="text-lg font-semibold">{employeeTasks.length}</div>

@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Eye, Mail, Phone, Edit } from "lucide-react"
+import { Search, Eye, Mail, Phone, Edit, Plus } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 
 interface Employee {
   id: number
@@ -27,12 +37,61 @@ interface EmployeesTabProps {
   employees: Employee[]
   onEmployeeSelect: (employeeId: number) => void
   onEmployeeEdit?: (employee: Employee) => void
+  onEmployeeAdd?: (employee: Employee) => void
 }
 
-export function EmployeesTab({ employees, onEmployeeSelect, onEmployeeEdit }: EmployeesTabProps) {
+export function EmployeesTab({ employees, onEmployeeSelect, onEmployeeEdit, onEmployeeAdd }: EmployeesTabProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [performanceFilter, setPerformanceFilter] = useState("all")
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [newEmployee, setNewEmployee] = useState({
+    name: "",
+    email: "",
+    position: "",
+    department: "",
+    performance: 85,
+    attendance: 95,
+    tasksCompleted: 0,
+    totalTasks: 0,
+    lateComings: 0,
+  })
+
+  const handleAddEmployee = () => {
+    if (newEmployee.name && newEmployee.email && newEmployee.position && newEmployee.department) {
+      const employee = {
+        id: Math.max(...employees.map((emp) => emp.id)) + 1,
+        name: newEmployee.name,
+        position: newEmployee.position,
+        department: newEmployee.department,
+        email: newEmployee.email,
+        avatar: "/placeholder.svg?height=40&width=40",
+        performance: newEmployee.performance,
+        attendance: newEmployee.attendance,
+        tasksCompleted: newEmployee.tasksCompleted,
+        totalTasks: newEmployee.totalTasks,
+        lateComings: newEmployee.lateComings,
+        status: "active",
+      }
+
+      if (onEmployeeAdd) {
+        onEmployeeAdd(employee)
+      }
+
+      setNewEmployee({
+        name: "",
+        email: "",
+        position: "",
+        department: "",
+        performance: 85,
+        attendance: 95,
+        tasksCompleted: 0,
+        totalTasks: 0,
+        lateComings: 0,
+      })
+      setIsAddDialogOpen(false)
+    }
+  }
 
   // Filter employees based on search and filters
   const filteredEmployees = employees.filter((employee) => {
@@ -58,8 +117,155 @@ export function EmployeesTab({ employees, onEmployeeSelect, onEmployeeEdit }: Em
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Employee Directory</CardTitle>
-          <CardDescription>Manage and view all team members</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Employee Directory</CardTitle>
+              <CardDescription>Manage and view all team members</CardDescription>
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Employee
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Employee</DialogTitle>
+                  <DialogDescription>Create a new employee profile for the team.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="newName">Full Name</Label>
+                      <Input
+                        id="newName"
+                        value={newEmployee.name}
+                        onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                        placeholder="Enter full name"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="newEmail">Email</Label>
+                      <Input
+                        id="newEmail"
+                        type="email"
+                        value={newEmployee.email}
+                        onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                        placeholder="Enter email address"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="newPosition">Position</Label>
+                      <Input
+                        id="newPosition"
+                        value={newEmployee.position}
+                        onChange={(e) => setNewEmployee({ ...newEmployee, position: e.target.value })}
+                        placeholder="Enter job position"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="newDepartment">Department</Label>
+                      <Select
+                        value={newEmployee.department}
+                        onValueChange={(value) => setNewEmployee({ ...newEmployee, department: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Accounting">Accounting</SelectItem>
+                          <SelectItem value="Finance">Finance</SelectItem>
+                          <SelectItem value="HR">Human Resources</SelectItem>
+                          <SelectItem value="IT">Information Technology</SelectItem>
+                          <SelectItem value="Marketing">Marketing</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="newPerformance">Performance (%)</Label>
+                      <Input
+                        id="newPerformance"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={newEmployee.performance}
+                        onChange={(e) =>
+                          setNewEmployee({ ...newEmployee, performance: Number.parseInt(e.target.value) || 0 })
+                        }
+                        placeholder="85"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="newAttendance">Attendance (%)</Label>
+                      <Input
+                        id="newAttendance"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={newEmployee.attendance}
+                        onChange={(e) =>
+                          setNewEmployee({ ...newEmployee, attendance: Number.parseInt(e.target.value) || 0 })
+                        }
+                        placeholder="95"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="newLateComings">Late Comings</Label>
+                      <Input
+                        id="newLateComings"
+                        type="number"
+                        min="0"
+                        value={newEmployee.lateComings}
+                        onChange={(e) =>
+                          setNewEmployee({ ...newEmployee, lateComings: Number.parseInt(e.target.value) || 0 })
+                        }
+                        placeholder="2"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="newTasksCompleted">Tasks Completed</Label>
+                      <Input
+                        id="newTasksCompleted"
+                        type="number"
+                        min="0"
+                        value={newEmployee.tasksCompleted}
+                        onChange={(e) =>
+                          setNewEmployee({ ...newEmployee, tasksCompleted: Number.parseInt(e.target.value) || 0 })
+                        }
+                        placeholder="20"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="newTotalTasks">Total Tasks</Label>
+                      <Input
+                        id="newTotalTasks"
+                        type="number"
+                        min="0"
+                        value={newEmployee.totalTasks}
+                        onChange={(e) =>
+                          setNewEmployee({ ...newEmployee, totalTasks: Number.parseInt(e.target.value) || 0 })
+                        }
+                        placeholder="25"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddEmployee}>Add Employee</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">

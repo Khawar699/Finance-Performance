@@ -39,6 +39,7 @@ interface DashboardContentProps {
   employees: Employee[]
   onEmployeeSelect: (employeeId: number) => void
   onEmployeeEdit?: (employee: Employee) => void
+  onEmployeeAdd?: (employee: Employee) => void
   attendanceRecords?: AttendanceEntry[]
   onAddAttendance?: (entry: AttendanceEntry) => void
   onUpdateAttendance?: (entry: AttendanceEntry) => void
@@ -49,6 +50,7 @@ export function DashboardContent({
   employees,
   onEmployeeSelect,
   onEmployeeEdit,
+  onEmployeeAdd,
   attendanceRecords,
   onAddAttendance,
   onUpdateAttendance,
@@ -58,7 +60,16 @@ export function DashboardContent({
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
-        return <OverviewTab employees={employees} onEmployeeSelect={onEmployeeSelect} onEmployeeEdit={onEmployeeEdit} />
+        return (
+          <OverviewTab
+            employees={employees}
+            onEmployeeSelect={onEmployeeSelect}
+            onEmployeeEdit={onEmployeeEdit}
+            onEmployeeAdd={() => {
+              /* Navigate to employees tab */
+            }}
+          />
+        )
       case "performance":
         return <PerformanceTab employees={employees} period={selectedPeriod} />
       case "attendance":
@@ -71,7 +82,12 @@ export function DashboardContent({
         return <DailyWorkTab employees={employees} />
       case "employees":
         return (
-          <EmployeesTab employees={employees} onEmployeeSelect={onEmployeeSelect} onEmployeeEdit={onEmployeeEdit} />
+          <EmployeesTab
+            employees={employees}
+            onEmployeeSelect={onEmployeeSelect}
+            onEmployeeEdit={onEmployeeEdit}
+            onEmployeeAdd={onEmployeeAdd}
+          />
         )
       case "daily-attendance":
         return (
@@ -83,7 +99,16 @@ export function DashboardContent({
           />
         )
       default:
-        return <OverviewTab employees={employees} onEmployeeSelect={onEmployeeSelect} onEmployeeEdit={onEmployeeEdit} />
+        return (
+          <OverviewTab
+            employees={employees}
+            onEmployeeSelect={onEmployeeSelect}
+            onEmployeeEdit={onEmployeeEdit}
+            onEmployeeAdd={() => {
+              /* Navigate to employees tab */
+            }}
+          />
+        )
     }
   }
 

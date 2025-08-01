@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import { CalendarDays, Users, TrendingUp, Clock, Eye, Edit } from "lucide-react"
+import { CalendarDays, Users, TrendingUp, Clock, Eye, Edit, Plus } from "lucide-react"
 
 interface Employee {
   id: number
@@ -23,9 +23,10 @@ interface OverviewTabProps {
   employees: Employee[]
   onEmployeeSelect: (employeeId: number) => void
   onEmployeeEdit?: (employee: Employee) => void
+  onEmployeeAdd?: () => void
 }
 
-export function OverviewTab({ employees, onEmployeeSelect, onEmployeeEdit }: OverviewTabProps) {
+export function OverviewTab({ employees, onEmployeeSelect, onEmployeeEdit, onEmployeeAdd }: OverviewTabProps) {
   // Calculate summary metrics
   const totalEmployees = employees.length
   const avgPerformance = Math.round(employees.reduce((sum, emp) => sum + emp.performance, 0) / totalEmployees)
@@ -86,8 +87,16 @@ export function OverviewTab({ employees, onEmployeeSelect, onEmployeeEdit }: Ove
       {/* Team Performance Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>Team Performance Overview</CardTitle>
-          <CardDescription>Individual employee performance metrics</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Team Performance Overview</CardTitle>
+              <CardDescription>Individual employee performance metrics</CardDescription>
+            </div>
+            <Button onClick={() => onEmployeeAdd && onEmployeeAdd()} variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Employee
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
