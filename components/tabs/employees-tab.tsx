@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Eye, Mail, Phone } from "lucide-react"
+import { Search, Eye, Mail, Phone, Edit } from "lucide-react"
 
 interface Employee {
   id: number
@@ -26,9 +26,10 @@ interface Employee {
 interface EmployeesTabProps {
   employees: Employee[]
   onEmployeeSelect: (employeeId: number) => void
+  onEmployeeEdit?: (employee: Employee) => void
 }
 
-export function EmployeesTab({ employees, onEmployeeSelect }: EmployeesTabProps) {
+export function EmployeesTab({ employees, onEmployeeSelect, onEmployeeEdit }: EmployeesTabProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [performanceFilter, setPerformanceFilter] = useState("all")
@@ -154,10 +155,21 @@ export function EmployeesTab({ employees, onEmployeeSelect }: EmployeesTabProps)
                 </div>
               </div>
 
-              <Button className="w-full bg-transparent" variant="outline" onClick={() => onEmployeeSelect(employee.id)}>
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 bg-transparent"
+                  variant="outline"
+                  onClick={() => onEmployeeSelect(employee.id)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
+                </Button>
+                {onEmployeeEdit && (
+                  <Button variant="outline" size="sm" onClick={() => onEmployeeEdit(employee)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}

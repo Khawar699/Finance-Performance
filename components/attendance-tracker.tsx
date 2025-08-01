@@ -4,8 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Clock, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
-import { format } from "date-fns"
+import { Clock, CheckCircle, XCircle, AlertTriangle, Calendar } from "lucide-react"
 
 interface Employee {
   id: number
@@ -15,48 +14,41 @@ interface Employee {
   lateComings: number
 }
 
+interface AttendanceEntry {
+  id: string
+  employeeId: number
+  date: string
+  status: "present" | "late" | "absent"
+  timeIn: string
+  timeOut: string
+  notes?: string
+}
+
 interface AttendanceTrackerProps {
   employees: Employee[]
   period: string
+  attendanceRecords: AttendanceEntry[]
 }
 
-// Mock attendance data
-const generateAttendanceData = (employeeId: number) => {
-  const data = []
-  const today = new Date()
+export function AttendanceTracker({ employees, period, attendanceRecords }: AttendanceTrackerProps) {
+  const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null)
 
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-
-    const random = Math.random()
-    let status = "present"
-    let timeIn = "09:00"
-
-    if (random < 0.05) {
-      status = "absent"
-      timeIn = "-"
-    } else if (random < 0.15) {
-      status = "late"
-      timeIn = "09:" + (15 + Math.floor(Math.random() * 45)).toString().padStart(2, "0")
-    } else {
-      timeIn = "08:" + (45 + Math.floor(Math.random() * 15)).toString().padStart(2, "0")
-    }
-
-    data.push({
-      date: format(date, "yyyy-MM-dd"),
-      status,
-      timeIn,
-      timeOut: status === "absent" ? "-" : "17:" + (30 + Math.floor(Math.random() * 30)).toString().padStart(2, "0"),
-    })
+  const getEmployeeAttendanceData = (employeeId: number) => {
+    return attendanceRecords
+      .filter((record) => record.employeeId === employeeId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
-  return data
-}
+  const calculateAttendanceStats = (employeeId: number) => {
+    const records = getEmployeeAttendanceData(employeeId)
+    const presentDays = records.filter((r) => r.status === "present").length
+    const lateDays = records.filter((r) => r.status === "late").length
+    const absentDays = records.filter((r) => r.status === "absent").length
+    const totalDays = records.length
+    const attendanceRate = totalDays > 0 ? Math.round(((presentDays + lateDays) / totalDays) * 100) : 0
 
-export function AttendanceTracker({ employees, period }: AttendanceTrackerProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>()
-  const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null)
+    return { presentDays, lateDays, absentDays, totalDays, attendanceRate }
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -98,15 +90,13 @@ export function AttendanceTracker({ employees, period }: AttendanceTrackerProps)
       <Card>
         <CardHeader>
           <CardTitle>Attendance Summary - {period.charAt(0).toUpperCase() + period.slice(1)}</CardTitle>
-          <CardDescription>Track daily attendance and punctuality</CardDescription>
+          <CardDescription>Track daily attendance and punctuality based on recorded data</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
             {employees.map((employee) => {
-              const attendanceData = generateAttendanceData(employee.id)
-              const presentDays = attendanceData.filter((d) => d.status === "present").length
-              const lateDays = attendanceData.filter((d) => d.status === "late").length
-              const absentDays = attendanceData.filter((d) => d.status === "absent").length
+              const stats = calculateAttendanceStats(employee.id)
+              const attendanceData = getEmployeeAttendanceData(employee.id)
 
               return (
                 <div key={employee.id} className="border rounded-lg p-4">
@@ -122,52 +112,70 @@ export function AttendanceTracker({ employees, period }: AttendanceTrackerProps)
                         <p className="text-sm text-gray-600">{employee.position}</p>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedEmployee(selectedEmployee === employee.id ? null : employee.id)}
-                    >
-                      {selectedEmployee === employee.id ? "Hide Details" : "View Details"}
-                    </Button>
+                    <div className="flex items-center gap-4">
+                      <div className="text-sm text-gray-600">{stats.totalDays} days recorded</div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedEmployee(selectedEmployee === employee.id ? null : employee.id)}
+                      >
+                        {selectedEmployee === employee.id ? "Hide Details" : "View Details"}
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{presentDays}</div>
+                      <div className="text-2xl font-bold text-green-600">{stats.presentDays}</div>
                       <div className="text-xs text-green-700">Present Days</div>
                     </div>
                     <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">{lateDays}</div>
+                      <div className="text-2xl font-bold text-yellow-600">{stats.lateDays}</div>
                       <div className="text-xs text-yellow-700">Late Days</div>
                     </div>
                     <div className="text-center p-3 bg-red-50 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">{absentDays}</div>
+                      <div className="text-2xl font-bold text-red-600">{stats.absentDays}</div>
                       <div className="text-xs text-red-700">Absent Days</div>
                     </div>
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{employee.attendance}%</div>
+                      <div className="text-2xl font-bold text-blue-600">{stats.attendanceRate}%</div>
                       <div className="text-xs text-blue-700">Attendance Rate</div>
                     </div>
                   </div>
 
                   {selectedEmployee === employee.id && (
                     <div className="border-t pt-4">
-                      <h4 className="font-medium mb-3">Last 30 Days Attendance</h4>
-                      <div className="grid gap-2 max-h-60 overflow-y-auto">
-                        {attendanceData.reverse().map((record, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                            <div className="flex items-center gap-2">
-                              {getStatusIcon(record.status)}
-                              <span className="text-sm">{format(new Date(record.date), "MMM dd, yyyy")}</span>
+                      <h4 className="font-medium mb-3">Attendance History</h4>
+                      {attendanceData.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No attendance records found</p>
+                          <p className="text-sm">Start adding daily attendance to see history</p>
+                        </div>
+                      ) : (
+                        <div className="grid gap-2 max-h-60 overflow-y-auto">
+                          {attendanceData.map((record, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div className="flex items-center gap-2">
+                                {getStatusIcon(record.status)}
+                                <span className="text-sm">
+                                  {new Date(record.date).toLocaleDateString("en-US", {
+                                    weekday: "short",
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-sm">In: {record.timeIn}</span>
+                                <span className="text-sm">Out: {record.timeOut}</span>
+                                {getStatusBadge(record.status)}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-sm">In: {record.timeIn}</span>
-                              <span className="text-sm">Out: {record.timeOut}</span>
-                              {getStatusBadge(record.status)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

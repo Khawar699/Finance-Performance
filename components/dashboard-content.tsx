@@ -7,6 +7,7 @@ import { AttendanceTab } from "@/components/tabs/attendance-tab"
 import { TasksTab } from "@/components/tabs/tasks-tab"
 import { DailyWorkTab } from "@/components/tabs/daily-work-tab"
 import { EmployeesTab } from "@/components/tabs/employees-tab"
+import { DailyAttendanceTab } from "@/components/tabs/daily-attendance-tab"
 
 interface Employee {
   id: number
@@ -23,31 +24,66 @@ interface Employee {
   status: string
 }
 
+interface AttendanceEntry {
+  id: string
+  employeeId: number
+  date: string
+  status: "present" | "late" | "absent"
+  timeIn: string
+  timeOut: string
+  notes?: string
+}
+
 interface DashboardContentProps {
   activeTab: string
   employees: Employee[]
   onEmployeeSelect: (employeeId: number) => void
+  onEmployeeEdit?: (employee: Employee) => void
+  attendanceRecords?: AttendanceEntry[]
+  onAddAttendance?: (entry: AttendanceEntry) => void
+  onUpdateAttendance?: (entry: AttendanceEntry) => void
 }
 
-export function DashboardContent({ activeTab, employees, onEmployeeSelect }: DashboardContentProps) {
+export function DashboardContent({
+  activeTab,
+  employees,
+  onEmployeeSelect,
+  onEmployeeEdit,
+  attendanceRecords,
+  onAddAttendance,
+  onUpdateAttendance,
+}: DashboardContentProps) {
   const [selectedPeriod, setSelectedPeriod] = useState("monthly")
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
-        return <OverviewTab employees={employees} onEmployeeSelect={onEmployeeSelect} />
+        return <OverviewTab employees={employees} onEmployeeSelect={onEmployeeSelect} onEmployeeEdit={onEmployeeEdit} />
       case "performance":
         return <PerformanceTab employees={employees} period={selectedPeriod} />
       case "attendance":
-        return <AttendanceTab employees={employees} period={selectedPeriod} />
+        return (
+          <AttendanceTab employees={employees} period={selectedPeriod} attendanceRecords={attendanceRecords || []} />
+        )
       case "tasks":
         return <TasksTab employees={employees} />
       case "daily-work":
         return <DailyWorkTab employees={employees} />
       case "employees":
-        return <EmployeesTab employees={employees} onEmployeeSelect={onEmployeeSelect} />
+        return (
+          <EmployeesTab employees={employees} onEmployeeSelect={onEmployeeSelect} onEmployeeEdit={onEmployeeEdit} />
+        )
+      case "daily-attendance":
+        return (
+          <DailyAttendanceTab
+            employees={employees}
+            attendanceRecords={attendanceRecords || []}
+            onAddAttendance={onAddAttendance}
+            onUpdateAttendance={onUpdateAttendance}
+          />
+        )
       default:
-        return <OverviewTab employees={employees} onEmployeeSelect={onEmployeeSelect} />
+        return <OverviewTab employees={employees} onEmployeeSelect={onEmployeeSelect} onEmployeeEdit={onEmployeeEdit} />
     }
   }
 

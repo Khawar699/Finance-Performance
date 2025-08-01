@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import { CalendarDays, Users, TrendingUp, Clock, Eye } from "lucide-react"
+import { CalendarDays, Users, TrendingUp, Clock, Eye, Edit } from "lucide-react"
 
 interface Employee {
   id: number
@@ -22,9 +22,10 @@ interface Employee {
 interface OverviewTabProps {
   employees: Employee[]
   onEmployeeSelect: (employeeId: number) => void
+  onEmployeeEdit?: (employee: Employee) => void
 }
 
-export function OverviewTab({ employees, onEmployeeSelect }: OverviewTabProps) {
+export function OverviewTab({ employees, onEmployeeSelect, onEmployeeEdit }: OverviewTabProps) {
   // Calculate summary metrics
   const totalEmployees = employees.length
   const avgPerformance = Math.round(employees.reduce((sum, emp) => sum + emp.performance, 0) / totalEmployees)
@@ -138,10 +139,18 @@ export function OverviewTab({ employees, onEmployeeSelect }: OverviewTabProps) {
                         ? "Good"
                         : "Needs Improvement"}
                   </Badge>
-                  <Button variant="outline" size="sm" onClick={() => onEmployeeSelect(employee.id)}>
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => onEmployeeSelect(employee.id)}>
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    {onEmployeeEdit && (
+                      <Button variant="outline" size="sm" onClick={() => onEmployeeEdit(employee)}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

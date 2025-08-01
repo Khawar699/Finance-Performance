@@ -10,11 +10,22 @@ interface Employee {
   lateComings: number
 }
 
+interface AttendanceEntry {
+  id: string
+  employeeId: number
+  date: string
+  status: "present" | "late" | "absent"
+  timeIn: string
+  timeOut: string
+  notes?: string
+}
+
 interface AttendanceTabProps {
   employees: Employee[]
   period: string
+  attendanceRecords: AttendanceEntry[]
 }
 
-export function AttendanceTab({ employees, period }: AttendanceTabProps) {
-  return <AttendanceTracker employees={employees} period={period} />
+export function AttendanceTab({ employees, period, attendanceRecords }: AttendanceTabProps) {
+  return <AttendanceTracker employees={employees} period={period} attendanceRecords={attendanceRecords} />
 }

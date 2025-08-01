@@ -35,10 +35,16 @@ const menuItems = [
     description: "Employee performance metrics",
   },
   {
+    id: "daily-attendance",
+    label: "Daily Entry",
+    icon: Calendar,
+    description: "Mark daily attendance",
+  },
+  {
     id: "attendance",
     label: "Attendance",
     icon: Calendar,
-    description: "Attendance tracking",
+    description: "Attendance reports",
   },
   {
     id: "tasks",
